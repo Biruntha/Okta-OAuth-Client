@@ -56,7 +56,7 @@
 		  <div class="form-group">
 		    <label class="" for="ConsumerSecret"><%=i18n.localize("Consumer Secret")%></label>
 		    <div class="input-group">
-		      <input type="{{# if show_keys }}text{{else}}password{{/if}}" class="form-control" title="<%=i18n.localize("Consumer Secret")%>" id="ConsumerSecret" placeholder="<%=i18n.localize("Consumer Secret")%>" value="{{ConsumerSecret}}">
+		      <input type="{{# if show_keys }}text{{else}}password{{/if}}" class="form-control ConsumerSecret" title="<%=i18n.localize("Consumer Secret")%>" id="ConsumerSecret" placeholder="<%=i18n.localize("Consumer Secret")%>" value="{{ConsumerSecret}}">
 		      <div class="input-group-btn">
 		      	<button class="btn btn-default copy-button" data-clipboard-text="{{ConsumerSecret}}"  type="button" title="<%=i18n.localize("Copy")%>">
                     <i class="fw fw-copy"></i>
@@ -90,16 +90,12 @@
 		<div class="row add-margin-top-5x">
 		  <div class="col-md-12">
 		  	<h4><%=i18n.localize("Generating Access Tokens")%></h4>
-		  	<p><%=i18n.localize("The following cURL command shows how to generate an access token using the Password Grant type.")%></p>
+		  	
+	        <p>You can generate an access token using the Client Credential grant type with the following cURL command</p>
 			<div class="highlight"><pre>
-		 <a data-clipboard-text='curl -k -d "grant_type=password&username={{ username }}&password={{ password }}" -H "Authorization: Basic {{basickey}}" <%= gatewayurlendpoint %>/token ' class="pull-right copy-button"  title="<%=i18n.localize("Copy")%>"><i class="fw fw-copy"></i></a><textarea class="curl_command">curl -k -d "grant_type=password&username={{ username }}&password={{ password }}" \
+			<a data-clipboard-text='curl -k -d "grant_type=client_credentials" -H "Authorization: Basic {{basickey}}" <%= gatewayurlendpoint %>/token ' class="pull-right copy-button"  title="<%=i18n.localize("Copy")%>"><i class="fw fw-copy"></i></a><textarea class="curl_command">curl -k -d "grant_type=client_credentials&scope=(token-scope)" \
 	    -H "Authorization: Basic {{# if show_keys }}{{basickey}}{{else}}Base64(consumer-key:consumer-secret){{/if}}" \
-	     <%= gatewayurlendpoint %>/token</textarea></pre>
-	        </div>
-	        <p><%=i18n.localize("In a similar manner, you can generate an access token using the Client Credential grant type with the following cURL command.")%></p>
-			<div class="highlight"><pre>
-			<a data-clipboard-text='curl -k -d "grant_type=client_credentials" -H "Authorization: Basic {{basickey}}" <%= gatewayurlendpoint %>/token ' class="pull-right copy-button"  title="<%=i18n.localize("Copy")%>"><i class="fw fw-copy"></i></a><textarea class="curl_command">curl -k -d "grant_type=client_credentials" \
-	    -H "Authorization: Basic {{# if show_keys }}{{basickey}}{{else}}Base64(consumer-key:consumer-secret){{/if}}" \
+	    -H "Content-Type: application/x-www-form-urlencoded" \
 	     <%= gatewayurlendpoint %>/token</textarea></pre>
 	        </div>        
 		  </div>
@@ -122,7 +118,7 @@
 			<%=i18n.localize("And the token has")%> ( <strong>{{KeyScope}}</strong> ) <%=i18n.localize("scopes.")%>
 		  {{/if}}
 		  </p>
-	  	<form class="add-margin-top-5x well">
+<form class="add-margin-top-5x well" id="reGenerateKeyForm">
 	  	    <div style="display: none;" class="form-group">
                 <label for="" class="control-label"><%=i18n.localize("Scopes")%></label>
                   <select class="selectpicker scope_select dropup form-control"  multiple title="{{#if Scopes}}Select..{{else}}No Scopes Found..{{/if}}" {{#if Scopes}}{{else}}disabled{{/if}}>
@@ -131,15 +127,20 @@
                     {{/each}}
                   </select>
             </div>
-            <div class="form-group">
+            <div style="display: none; class="form-group">
                 <label for="" class="control-label"><%=i18n.localize("Validity period")%></label>
                     <div class="input-group col-sm-6">
                       <input type="text" title="validityTime" size="10" value='{{ValidityTime}}' class="form-control validity_time">
                       <div class="input-group-addon"><%=i18n.localize("Seconds")%></div>
                     </div>
             </div>
+	    <div class="form-group">
+	    	<label class="" for="ConsumerSecret">Token Scope <span class="requiredAstrix">*</span></label>
+	    	<input type="text" required class="form-control revokeTokenScope" title="Token Scope" id="revokeTokenScope" name="revokeTokenScope" value="{{revokeTokenScope}}" />
+	  </div>
+
             <button class=" btn btn-primary regenerate" data-load-text="<%= i18n.localize("Generating") %>"><%=i18n.localize("Re-generate")%></button>
-		</form>		  	
+	</form>		  	
 	  </div>
 	</div>
 	<br />
@@ -200,19 +201,19 @@
 		</div>
 		<div class="form-group">
 			<label class="" for="ConsumerKey">Response Types <span class="requiredAstrix">*</span></label>
-			<input type="text" required class="form-control response_types" name="response_types" title="Response Types" autofocus="autofocus">	      
+			<input type="text" required class="form-control response_types" name="response_types" title="Response Types" value="{{response_types}}">	      
 		</div>
 		<div class="form-group">
 			<label class="" for="ConsumerKey">Token Endpoint Auth Method <span class="requiredAstrix">*</span></label>
-			<input type="text" required class="form-control token_endpoint_auth_method" name="token_endpoint_auth_method" title="Token Endpoint Auth Method" autofocus="autofocus">	      
+			<input type="text" required class="form-control token_endpoint_auth_method" name="token_endpoint_auth_method" title="Token Endpoint Auth Method" value="{{token_endpoint_auth_method}}">	      
 		</div>
 		 <div class="form-group">
 			<label class="" for="ConsumerKey">Token Scope <span class="requiredAstrix">*</span></label>
-			<input type="text" required class="form-control scope" title="Token Scope" name="scope" autofocus="autofocus">	      
+			<input type="text" required class="form-control tokenScope" title="Token Scope" name="tokenScope" value="{{tokenScope}}">	      
 		</div>
 		<div class="form-group">
 			<label class="" for="ConsumerKey">Token Grant Type <span class="requiredAstrix">*</span></label>
-			<input type="text" required class="form-control tokenGrantType" name="tokenGrantType" title="Token Grant Type" autofocus="autofocus">	      
+			<input type="text" required class="form-control tokenGrantType" name="tokenGrantType" title="Token Grant Type" value="{{tokenGrantType}}">	      
 		</div>
 
 
@@ -224,7 +225,7 @@
                         {{/each}}
                       </select>
                 </div>
-                <div class="form-group">
+                <div style="display: none; class="form-group">
                     <label><%=i18n.localize("Access token validity period")%> </label>
                     <div class="input-group col-sm-6">
                       <input type="text" size="10" title="validity_time" name="validity_time" value='{{ValidityTime}}' class="form-control form-control-md validity_time">
@@ -250,18 +251,18 @@
     			<input type="text" required class="form-control ConsumerKey" title="ConsumerKey" id="ConsumerKey" name="ConsumerKey" autofocus="autofocus" placeholder="<%=i18n.localize("Consumer Key")%>" />
 		  </div>
 		  <div class="form-group">
-		    	<label class="" for="ConsumerSecret"><%=i18n.localize("Consumer Secret")%> <span class="requiredAstrix">*</span></label>
-		    	<input type="text" required class="form-control ConsumerSecret" title="ConsumerSecret" id="ConsumerSecret" name="ConsumerSecret" placeholder="<%=i18n.localize("Consumer Secret")%>" />
+		    	<label class="" for="ConsumerKey"><%=i18n.localize("Consumer Secret")%> <span class="requiredAstrix">*</span></label>
+		    	<input type="text" required class="form-control MapAppConsumerSecret" title="MapAppConsumerSecret" id="MapAppConsumerSecret" name="MapAppConsumerSecret" placeholder="<%=i18n.localize("Consumer Secret")%>" value="{{MapAppConsumerSecret}}"/>
 		  </div>
 
 		  <div class="form-group">
-		    	<label class="" for="ConsumerSecret">Token Scope <span class="requiredAstrix">*</span></label>
-		    	<input type="text" required class="form-control tokenScope" title="Token Scope" id="tokenScope" name="tokenScope" placeholder="Token Scope" />
+		    	<label class="" for="ConsumerKey">Token Scope <span class="requiredAstrix">*</span></label>
+		    	<input type="text" required class="form-control token_scope" title="Token Scope" id="token_scope" name="token_scope" autofocus="autofocus" value="{{token_scope}}" placeholder="Token Scope" />
 		  </div>
 
 		  <div class="form-group">
-		    	<label class="" for="ConsumerSecret">Token Grant Type <span class="requiredAstrix">*</span></label>
-		    	<input type="text" required class="form-control tokenGrantType" title="Token Grant Type" id="tokenGrantType" name="tokenGrantType" placeholder="Token Grant Type" />
+		    	<label class="" for="ConsumerKey">Token Grant Type <span class="requiredAstrix">*</span></label>
+		    	<input type="text" required class="form-control token_grantType" title="Token Grant Type" id="token_grantType" autofocus="autofocus" value="{{token_grantType}}" name="token_grantType" placeholder="Token Grant Type" />
 		  </div>
 		  <div class="form-group">
 		    	<button  class="btn btn-primary provide_keys_save"><%=i18n.localize("Save")%></button>

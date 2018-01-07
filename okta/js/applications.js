@@ -149,8 +149,61 @@ GrantTypes.prototype.getMap = function(selected){
             this.element.on( "click", ".generateAgainBtn", $.proxy(this.generateAgainBtn, this));
             this.element.on( "click", ".update_grants", $.proxy(this.updateGrants, this));
             this.element.on( "change", ".callback_url", $.proxy(this.change_callback_url, this));
+	    this.element.on( "change", ".application_type", $.proxy(this.change_application_type, this));
+	    this.element.on( "change", ".response_types", $.proxy(this.change_response_types, this));
+	    this.element.on( "change", ".token_endpoint_auth_method", $.proxy(this.change_token_endpoint_auth_method, this));
+	    this.element.on( "change", ".tokenScope", $.proxy(this.change_tokenScope, this));
+	    this.element.on( "change", ".tokenGrantType", $.proxy(this.change_tokenGrantType, this));
+	    this.element.on( "change", ".revokeTokenScope", $.proxy(this.change_revokeTokenScope, this));
+	    this.element.on( "change", ".access_token", $.proxy(this.change_access_token, this));
+	    this.element.on( "change", ".ConsumerSecret", $.proxy(this.change_ConsumerSecret, this));
+	    this.element.on( "change", ".ConsumerKey", $.proxy(this.change_ConsumerKey, this));
+	    this.element.on( "change", ".MapAppConsumerSecret", $.proxy(this.change_MapAppConsumerSecret, this));   
+	    this.element.on( "change", ".token_scope", $.proxy(this.change_token_scope, this));  
+	    this.element.on( "change", ".token_grantType", $.proxy(this.change_token_grantType, this)); 
         },
 
+	change_token_grantType: function(e){
+            this.app.token_grantType = $(e.currentTarget).val();
+        },
+	change_token_scope: function(e){
+            this.app.token_scope = $(e.currentTarget).val();
+        },
+	change_MapAppConsumerSecret: function(e){
+            this.app.MapAppConsumerSecret = $(e.currentTarget).val();
+        },
+	change_ConsumerKey: function(e){
+            this.app.ConsumerKey = $(e.currentTarget).val();
+        },
+	change_ConsumerSecret: function(e){
+            this.app.ConsumerSecret = $(e.currentTarget).val();
+        },
+	change_access_token: function(e){
+            this.app.Key = $(e.currentTarget).val();
+        },
+	change_revokeTokenScope: function(e){
+            this.app.revokeTokenScope = $(e.currentTarget).val();
+        },
+	change_application_type: function(e){
+            this.app.application_type = $(e.currentTarget).val();
+            this.render();
+        },
+	change_response_types: function(e){
+            this.app.response_types = $(e.currentTarget).val();
+            this.render();
+        },
+	change_token_endpoint_auth_method: function(e){
+            this.app.token_endpoint_auth_method = $(e.currentTarget).val();
+            this.render();
+        },
+	change_tokenScope: function(e){
+            this.app.tokenScope = $(e.currentTarget).val();
+            this.render();
+        },
+	change_tokenGrantType: function(e){
+            this.app.tokenGrantType = $(e.currentTarget).val();
+            this.render();
+        },
         change_callback_url: function(e){
             this.app.callbackUrl = $(e.currentTarget).val();
             this.selectDefaultGrants();
@@ -203,18 +256,7 @@ GrantTypes.prototype.getMap = function(selected){
 
         provideKeysSave: function(){
 	    var _this=this;
-
-    	    var client_id = this.element.find(".ConsumerKey").val();
-    	    var client_secret = this.element.find(".ConsumerSecret").val();
-	    var tokenScope = this.element.find(".tokenScope").val();
-	    var tokenGrantType = this.element.find(".tokenGrantType").val();
-
-            var oJsonParams = {
-                "key_type" : this.type,
-                "client_secret":client_secret,
-		"tokenScope":tokenScope,
-		"tokenGrantType" : tokenGrantType
-            };
+           
 	    $("#mapAppForm").validate({
     	    submitHandler: function(form) {
             jagg.post("/site/blocks/subscription/subscription-add/ajax/subscription-add.jag", {
@@ -222,13 +264,13 @@ GrantTypes.prototype.getMap = function(selected){
                 applicationName: _this.app.name,
                 keytype: _this.type,
                 callbackUrl: _this.app.callbackUrl,
-                jsonParams: JSON.stringify(oJsonParams),
-                client_id : client_id,
+                jsonParams: JSON.stringify({"key_type" : _this.type, "client_secret":_this.app.MapAppConsumerSecret,"tokenScope":_this.app.token_scope,"tokenGrantType" : _this.app.token_grantType,}),
+                client_id : _this.app.ConsumerKey,
                 validityTime: 3600 //set a default value.
             }, $.proxy(function (result) {
                 if (!result.error) {
-                    _this.app.ConsumerKey = client_id;
-                    _this.app.ConsumerSecret = client_secret;
+                    _this.app.ConsumerKey = _this.app.ConsumerKey;
+                    _this.app.ConsumerSecret = _this.app.MapAppConsumerSecret;
                     _this.app.Key = result.data.key.accessToken;
                     _this.render();
                 } else {
@@ -261,12 +303,6 @@ GrantTypes.prototype.getMap = function(selected){
 	    var _this=this;
           
             var validity_time = this.element.find(".validity_time").val();
-	    var application_type = this.element.find(".application_type").val();
-            var response_types = this.element.find(".response_types").val();
-            var token_endpoint_auth_method = this.element.find(".token_endpoint_auth_method").val();
-            var scope = this.element.find(".scope").val();
-            var tokenGrantType = this.element.find(".tokenGrantType").val();
-
             var selected = this.element.find(".grants:checked")
                            .map(function(){ return $( this ).val();}).get().join(",");
             var scopes = $('#scopes option:selected')
@@ -274,7 +310,6 @@ GrantTypes.prototype.getMap = function(selected){
             
             this.element.find('.generatekeys').buttonLoader('start');
 
-  
 	    $("#generateKeyForm").validate({
 		submitHandler: function(form) {
 		    jagg.post("/site/blocks/subscription/subscription-add/ajax/subscription-add.jag", {
@@ -284,7 +319,7 @@ GrantTypes.prototype.getMap = function(selected){
 		        callbackUrl: _this.app.callbackUrl,
 		        validityTime: validity_time,
 		        tokenScope: "",
-		        jsonParams:'{"client_name": "'+_this.app.name+'", "redirect_uris": "'+_this.app.callbackUrl+'", "response_types": "'+response_types+'", "grant_types": "'+selected+'","token_endpoint_auth_method": "'+token_endpoint_auth_method+'","tokenScope": "'+scope+'","application_type": "'+application_type+'","tokenGrantType" : "'+tokenGrantType+'"}',
+		        jsonParams:'{"client_name": "'+_this.app.name+'", "redirect_uris": "'+_this.app.callbackUrl+'", "response_types": "'+_this.app.response_types+'", "grant_types": "'+selected+'","token_endpoint_auth_method": "'+_this.app.token_endpoint_auth_method+'","tokenScope": "'+_this.app.tokenScope+'","application_type": "'+_this.app.application_type+'","tokenGrantType" : "'+_this.app.tokenGrantType+'"}',
 		    }, $.proxy(function (result) {
 		        _this.element.find('.generatekeys').buttonLoader('stop');
 		        if (!result.error) {
@@ -292,6 +327,7 @@ GrantTypes.prototype.getMap = function(selected){
 		                var appDetails = JSON.parse(result.data.key.appDetails);
 		                _this.app.grants = _this.grants.getMap(appDetails.grant_types);
 		            }
+
 		            _this.app.ConsumerKey = result.data.key.consumerKey,
 		            _this.app.ConsumerSecret = result.data.key.consumerSecret,
 		            _this.app.Key = result.data.key.accessToken,
@@ -308,57 +344,63 @@ GrantTypes.prototype.getMap = function(selected){
 	}});
         },
 
-        regenerateToken: function(){            
+        regenerateToken: function(){  
+	    var _this=this;
+
             var validity_time = this.element.find(".validity_time").val();
+	    var tokenScope = this.element.find(".revokeTokenScope").val();
             var scopes = "";
             if(this.element.find("select.scope_select").val() != null) {
                 scopes = this.element.find("select.scope_select").val().join(" ");
             }
-            
+
             this.element.find('.regenerate').buttonLoader('start');
+
+	$("#reGenerateKeyForm").validate({
+	submitHandler: function(form) {
             jagg.post("/site/blocks/subscription/subscription-add/ajax/subscription-add.jag", {
                 action:"refreshToken",
-                application:this.app.name,
-                keytype:this.type,
-                oldAccessToken:this.app.Key,
-                clientId:this.app.ConsumerKey,
-                clientSecret: this.app.ConsumerSecret,
+                application:_this.app.name,
+                keytype:_this.type,
+                oldAccessToken:_this.app.Key,
+                clientId:_this.app.ConsumerKey,
+                clientSecret: _this.app.ConsumerSecret,
                 validityTime:validity_time,
-                tokenScope:scopes
+                tokenScope:_this.app.revokeTokenScope
             }, $.proxy(function (result) {
-                this.element.find('.regenerate').buttonLoader('stop');
+                _this.element.find('.regenerate').buttonLoader('stop');
                 if (!result.error) {
-                    this.app.Key = result.data.key.accessToken;
-                    this.app.ValidityTime = result.data.key.validityTime;
-                    this.app.KeyScope = result.data.key.tokenScope.join();                    
-                    this.render();
-                    this.element.find('input.access_token').animate({ opacity: 0.1 }, 500).animate({ opacity: 1 }, 500);                    
+                    _this.app.Key = result.data.key.accessToken;
+                    _this.app.ValidityTime = result.data.key.validityTime;
+                    _this.app.KeyScope = result.data.key.tokenScope.join();                    
+                    _this.render();
+                    _this.element.find('input.access_token').animate({ opacity: 0.1 }, 500).animate({ opacity: 1 }, 500);                    
                 } else {
                     jagg.message({content:result.message,type:"error"});
                 }
 
-            }, this), "json");
+            }, _this), "json");
             return false;
+}});
         },
 
         updateGrants: function(){
 	    var _this=this;
 
-	    var application_type = this.element.find(".application_type").val();
-	    var response_types = this.element.find(".response_types").val();
-	    var token_endpoint_auth_method = this.element.find(".token_endpoint_auth_method").val();
-
-
             this.element.find('.update_grants').buttonLoader('start');
             var selected = this.element.find(".grants:checked")
                            .map(function(){ return $( this ).val();}).get().join(",");
+	    if(selected == ""){
+		selected = "refresh_token,implicit,password,client_credentials,authorization_code";
+	    }
+
 	    $("#updateForm").validate({
     	    submitHandler: function(form) {
             jagg.post("/site/blocks/subscription/subscription-add/ajax/subscription-add.jag", {
                 action:"updateClientApplication",
                 application:_this.app.name,
                 keytype:_this.type,
-                jsonParams: '{"grant_types":"'+selected+'", "client_id": "'+_this.app.ConsumerKey+'", "client_name": "'+_this.app.name+'", "redirect_uris": "'+_this.app.callbackUrl+'","response_types": "'+response_types+'","token_endpoint_auth_method": "'+token_endpoint_auth_method+'","application_type": "'+application_type+'","updateAppInOkta" : "true"}',
+                jsonParams: '{"grant_types":"'+selected+'", "client_id": "'+_this.app.ConsumerKey+'", "client_name": "'+_this.app.name+'", "redirect_uris": "'+_this.app.callbackUrl+'","response_types": "'+_this.app.response_types+'","token_endpoint_auth_method": "'+_this.app.token_endpoint_auth_method+'","application_type": "'+_this.app.application_type+'","updateAppInOkta" : "true"}',
                 callbackUrl:_this.app.callbackUrl
             }, $.proxy(function (result) {
                 _this.element.find('.update_grants').buttonLoader('stop');
