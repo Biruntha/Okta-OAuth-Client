@@ -617,7 +617,3 @@ $(document).on('shown.bs.tab', 'a[data-toggle="tab"]', function (e) {
 });
 
 });
-
-
-
-
